@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
+</head>
+
+<body>
+    <h1>Welcome to User Dashboard</h1>
+
+
+    <div class="container">
+        <div class="chart-container">
+            <h2>Sector(Topic(Pest)) - Wise Insights</h2>
+            <h3 style="color: aliceblue;">(click on sector bar -- topic chart)</h3>
+            <h3 style="color: aliceblue;">(click on topic bar -- pest chart)</h3>
+            <div class="edit">
+                <label for="intensity">Intensity</label>
+                <select id="intensity" onchange="updateIntensity()">
+                    <option value="none">None</option>
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                </select>
+
+                <label for="relevance">Relevance</label>
+                <select id="relevance" onchange="updateFilters()">
+                    <option value="none">None</option>
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                </select>
+
+                <label for="likelihood">Likelihood</label>
+                <select id="likelihood" onchange="updateFilters()">
+                    <option value="none">None</option>
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                </select>
+
+
+
+            </div>
+
+            <canvas id="sector-chart" height="400" width="500"></canvas>
+        </div>
+
+        <!-- Important Insights Column -->
+        <div class="important-insights">
+            <h2>Important Insights</h2>
+            <ul id="importantInsightsList"></ul>
+        </div>
+
+        <div class="linechart">
+            <h2>Insights by Year(Line Chart)</h2>
+            <canvas id="insights-line-chart" height="400" width="600"></canvas>
+        </div>
+
+        <div class="pichart">
+            <h2>Insights by Relevance (Pie Chart)</h2>
+            <canvas id="insights-pie-chart" ></canvas>
+        </div>
+
+
+        <div class="piechart">
+            <h2>Insights by Likelihood (Pie Chart)</h2>
+            <canvas id="pie-chart" ></canvas>
+        </div>
+
+        <div class="leaderboard">
+            <h2>Leaderboard(Country)</h2>
+            <canvas id="leaderboard-chart" height="400" width="600" ></canvas>
+        </div>
+
+    </div>
+
+    <div class="modal" id="topic-modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <canvas id="topic-chart"></canvas>
+        </div>
+    </div>
+
+    <div class="modal" id="pest-modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <canvas id="pest-chart"></canvas>
+        </div>
+    </div>
+
+
+
+
+    <script>
+
+
+
+
+        // Variables to store selected intensity range
+        let minIntensity = null;
+        let maxIntensity = null;
+
+        // Function to update intensity range variables
+        function updateIntensity() {
+            const intensity = document.getElementById('intensity').value;
+            if (intensity === 'none') {
+                minIntensity = 0;
+                maxIntensity = 100;
+            } else if (intensity === 'low') {
+                minIntensity = 0;
+                maxIntensity = 40;
+            } else if (intensity === 'medium') {
+                minIntensity = 40;
+                maxIntensity = 70;
+            } else if (intensity === 'high') {
+                minIntensity = 70;
+                maxIntensity = 100;
+            }
+
+            renderSectorChart()
+        }
+
+
+
+
+        // Function to fetch data and render bar chart
+        function renderSectorChart() {
+            let apiUrls = '/api/sectors';
+            let apiUrlt = '';
+            let apiUrlp = '';
+            if (minIntensity !== null && maxIntensity !== null) {
+                apiUrls += `?min_intensity=${minIntensity}&max_intensity=${maxIntensity}`;
+            }
+            // Fetch data from the API endpoint
+            fetch(apiUrls)
+                .then(response => response.json())
+                .then(data => {
+                    const sectors = data.sectors;
+                    const labels = sectors.map(sector => sector.sector === null ? 'other' : sector.sector);
+                    const counts = sectors.map(sector => sector.count);
+
+                    // Create and render bar chart using Chart.js
+                    const ctx = document.getElementById('sector-chart').getContext('2d');
+                    const sectorChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Number of Sectors',
+                                data: counts,
+                                backgroundColor: 'rgba(255, 193, 86, 1)',
+                                borderColor: 'rgba(rgba(255, 193, 86, 1))',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            scales: {
+                                yAxes: [{
+                                    ticks: {
+                                        beginAtZero: true
+
+                                    }
+                                }]
+                            }
+                        }
+                    });
+
+                    // Add event listener to bar chart for showing topic chart on click
+                    const topicModal = document.getElementById('topic-modal');
+                    const pestModal = document.getElementById('pest-modal');
+                    sectorChart.canvas.addEventListener('mousemove', function (event) {
+                        const activeBar = sectorChart.getElementAtEvent(event);
+                        if (activeBar.length > 0) {
+                            const sectorIndex = activeBar[0]._index;
+                            const sector = labels[sectorIndex];
+                            apiUrlt = `/api/topics/${sector}`;
+                            if (minIntensity !== null && maxIntensity !== null) {
+                                apiUrlt += `?min_intensity=${minIntensity}&max_intensity=${maxIntensity}`;
+                                apiUrlp += `?min_intensity=${minIntensity}&max_intensity=${maxIntensity}`;
+                            }
+                            fetch(apiUrlt)
+                                .then(response => response.json())
+                                .then(topicData => {
+                                    const topics = topicData.topics;
+                                    const topicLabels = topics.map(topic => topic.topic === null ? 'other' : topic.topic);
+                                    const topicCounts = topics.map(topic => topic.count);
+
+                                    // Position the topic modal next to the clicked sector
+                                    topicModal.style.display = 'block';
+                                    topicModal.style.left = `${event.clientX}px`;
+                                    topicModal.style.top = `${event.clientY}px`;
+                                    const cttx = document.getElementById('topic-chart').getContext('2d');
+                                    const topicChartCanvas = new Chart(cttx, {
+                                        type: 'bar',
+                                        data: {
+                                            labels: topicLabels,
+                                            datasets: [{
+                                                label: `Number of Topics in ${sector}`,
+                                                data: topicCounts,
+                                                backgroundColor: 'rgba(255, 140, 0, 1)',
+                                                borderColor: 'rgba(255, 140, 0, 1)',
+                                                borderWidth: 1
+                                            }]
+                                        },
+                                        options: {
+                                            scales: {
+                                                yAxes: [{
+                                                    ticks: {
+                                                        beginAtZero: true
+                                                    }
+                                                }]
+                                            }
+                                        }
+                                    });
+
+                                    // Add event listener to topic chart for showing pest chart on click
+
+                                    topicChartCanvas.canvas.addEventListener('click', function (event) {
+                                        const activeBar = topicChartCanvas.getElementAtEvent(event);
+                                        if (activeBar.length > 0) {
+                                            const topicIndex = activeBar[0]._index;
+                                            const topic = topicLabels[topicIndex];
+                                            apiUrlp = `/api/pests/${sector}/${topic}`;
+                                            if (minIntensity !== null && maxIntensity !== null) {
+                                                apiUrlp += `?min_intensity=${minIntensity}&max_intensity=${maxIntensity}`;
+                                            }
+                                            console.log(sector);
+                                            console.log(topic);
+                                            fetch(apiUrlp)
+                                                .then(response => response.json())
+                                                .then(pestData => {
+                                                    const pests = pestData.pests;
+                                                    const pestLabels = pests.map(pest => pest.pestle);
+                                                    const pestCounts = pests.map(pest => pest.count);
+
+                                                    pestModal.style.display = 'block';
+                                                    pestModal.style.left = `${event.clientX}px`;
+                                                    pestModal.style.top = `${event.clientY}px`;
+
+                                                    const pestChartCanvas = document.getElementById('pest-chart');
+                                                    new Chart(pestChartCanvas, {
+                                                        type: 'bar',
+                                                        data: {
+                                                            labels: pestLabels,
+                                                            datasets: [{
+                                                                label: `Number of Pests in ${topic}`,
+                                                                data: pestCounts,
+                                                                backgroundColor: 'rgba(0, 0, 139, 1)',
+                                                                borderColor: 'rgba(0, 0, 139, 1)',
+                                                                borderWidth: 1
+                                                            }]
+                                                        },
+                                                        options: {
+                                                            scales: {
+                                                                yAxes: [{
+                                                                    ticks: {
+                                                                        beginAtZero: true
+                                                                    }
+                                                                }]
+                                                            }
+                                                        }
+                                                    });
+
+                                                });
+                                        }
+                                    });
+                                });
+                        }
+
+                        // Close the modals when the user clicks on close button
+                        const closeBtns = document.querySelectorAll('.close');
+                        closeBtns.forEach(btn => {
+                            btn.onclick = function () {
+                                topicModal.style.display = 'none';
+                                pestModal.style.display = 'none';
+                            };
+                        });
+
+                        // Close the modals when the user clicks outside of them
+                        window.onclick = function (event) {
+                            if (event.target == topicModal || event.target == pestModal) {
+                                topicModal.style.display = 'none';
+                                pestModal.style.display = 'none';
+                            }
+                        };
+                    });
+                });
+        }
+
+        // Call the function to render the chart when the page is loaded
+        window.onload = renderSectorChart();
+
+
+        function fetchImportantInsights() {
+            fetch('/api/important-insights')
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data)
+                    const insightsList = document.getElementById('importantInsightsList');
+                    insightsList.innerHTML = ''; // Clear previous insights
+
+                    data.important_insights.forEach(insight => {
+                        const listItem = document.createElement('li');
+                        listItem.textContent = insight.insight_text;
+                        insightsList.appendChild(listItem);
+                    });
+                });
+        }
+
+        // Call the function to fetch and render important insights when the page is loaded
+        window.onload = fetchImportantInsights();
+
+
+        function fetchInsightsByYear() {
+            fetch('/api/insights-by-year')
+                .then(response => response.json())
+                .then(data => {
+                    // Extract year and count data from the JSON response
+                    const years = data.insights_by_year.map(item => item.year);
+                    const counts = data.insights_by_year.map(item => item.count);
+
+                    // Create a new Chart.js line chart
+                    const ctx = document.getElementById('insights-line-chart').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: years,
+                            datasets: [{
+                                label: 'Number of Insights',
+                                data: counts,
+                                backgroundColor: 'rgba(255, 159, 64, 0.2)', // Orange color for background
+                                borderColor: 'rgba(255, 159, 64, 1)', // Orange color for line
+                                borderWidth: 2,
+                                pointBackgroundColor: 'rgba(255, 159, 64, 1)', // Orange color for points
+                                pointBorderColor: '#fff', // White color for point borders
+                                pointRadius: 5,
+                                pointHoverRadius: 7
+                            }]
+                        },
+                        options: {
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Number of Insights'
+                                    }
+                                },
+                                x: {
+                                    title: {
+                                        display: true,
+                                        text: 'Start Year'
+                                    }
+                                }
+                            }
+                        }
+                    });
+                });
+        }
+
+        // Call the function to fetch insights data when the page is loaded
+        window.onload = fetchInsightsByYear();
+
+        function fetchInsightsByRelevance() {
+            fetch('/api/insights-by-relevance')
+                .then(response => response.json())
+                .then(data => {
+                    const insightsByRelevance = data.insights_by_relevance;
+
+                    // Extract labels (relevance) and data (count) for the pie chart
+                    const labels = insightsByRelevance.map(insight => insight.relevance);
+                    const counts = insightsByRelevance.map(insight => insight.count);
+                    const colors = ['yellow', 'blue', 'red', 'violet', 'orange', 'white', 'green'];
+                    // Create pie chart using Chart.js
+                    const ctx = document.getElementById('insights-pie-chart').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'pie',
+                        data: {
+                            labels: ['1', '2', '3', '4', '5', '6', '7'],
+                            datasets: [{
+                                label: 'Insights by Relevance',
+                                data: counts,
+                                backgroundColor: colors,
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            // Add options as needed
+                        }
+                    });
+                });
+        }
+
+        // Call the function to fetch insights data by relevance when the page is loaded
+        window.onload = fetchInsightsByRelevance();
+
+
+        function renderPieChart() {
+            fetch('/api/insights-by-likelihood')
+                .then(response => response.json())
+                .then(data => {
+                    const likelihoodData = data.insights_by_likelihood;
+                    const labels = likelihoodData.map(item => item.likelihood);
+                    const counts = likelihoodData.map(item => item.count);
+                    const color = ['yellow', 'blue', 'red', 'violet','white'];
+                    const ctx = document.getElementById('pie-chart').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'pie',
+                        data: {
+                            labels: ['1', '2', '3', '4','0'],
+                            datasets: [{
+                                data: counts,
+                                backgroundColor: color
+
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    fontColor: 'white'
+                                }
+                            },
+                            title: {
+                                display: true,
+                                
+                                fontColor: 'white',
+                                fontSize: 18
+                            }
+                        }
+                    });
+                });
+        }
+
+        // Call the function to render the pie chart when the page is loaded
+        window.onload = renderPieChart();
+
+        function renderLeaderBoard() {
+            fetch('/api/leaderboard')
+                .then(response => response.json())
+                .then(data => {
+                    const leaderboardData = data.leaderboard;
+
+                    // Extract country names and insight counts
+                    const countries = leaderboardData.map(entry => entry.country);
+                    const insightCounts = leaderboardData.map(entry => entry.insight_count);
+
+                    // Render the leaderboard chart using Chart.js
+                    const ctx = document.getElementById('leaderboard-chart').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: countries,
+                            datasets: [{
+                                label: 'Number of Insights',
+                                data: insightCounts,
+                                backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                                borderColor: 'rgba(54, 162, 235, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            scales: {
+                                yAxes: [{
+                                    ticks: {
+                                        beginAtZero: true
+                                    }
+                                }]
+                            }
+                        }
+                    });
+                });
+        }
+        window.onload = renderLeaderBoard();
+
+    </script>
+</body>
+
+</html>

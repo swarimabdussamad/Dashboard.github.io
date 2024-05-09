@@ -1,0 +1,187 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: rgb(3, 3, 44);
+    background-image: url('https://mcdn.wallpapersafari.com/medium/84/71/C8YeJH.jpg');
+}
+
+h1 {
+    margin-top: 20px;
+    text-align: center;
+    color: rgb(236, 243, 103);
+    font-size: 60px;
+}
+
+h2 {
+    font-weight: bold;
+    font-style: normal;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    font-size: x-large;
+    text-decoration: underline;
+    color: #fff;
+}
+
+.container {
+    max-width: 1300px;
+    margin: 20px auto; /* Center the container */
+    padding: 20px;
+    border-radius: 10px;
+    background-color: color(prophoto-rgb red green blue);
+    border: 2px solid #fff;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around; /* Align items evenly */
+    border: 2px solid #f90606;
+}
+
+.chart-container {
+    margin-bottom: 20px;
+    padding: 20px;
+    border-radius: 8px;
+    background-color: rgba(8, 0, 0, 0.7); /* Transparent background */
+    box-shadow: 0 0 10px rgba(8, 0, 0, 0.5); /* Add shadow */
+    flex: 1; /* Take up equal space */
+    
+    
+}
+
+.important-insights {
+    margin-bottom: 20px;
+    padding: 20px;
+    border-radius: 8px;
+    background-color: rgba(8, 0, 0, 0.7); /* Transparent background */
+    box-shadow: 0 0 10px rgba(8, 0, 0, 0.5); /* Add shadow */
+    flex: 1; /* Take up equal space */
+    
+}
+
+.linechart {
+    margin-bottom: 30px;
+    padding: 10px;
+    border-radius: 8px;
+    background-color: rgba(8, 0, 0, 0.1); /* Transparent background */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); /* Add shadow */
+    flex: 1; /* Take up equal space */
+    
+}
+label{
+    font-style: normal;
+    color: rgb(236, 243, 103);
+    font-size: medium;
+}
+.button-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px; /* Adjust the gap between buttons */
+}
+button{
+    margin-right: 10px;
+    margin-bottom: 10px;
+}
+.filter-input {
+    display: none;
+    margin-bottom: 10px;
+    margin-right: auto;
+}
+/* Align input columns directly below buttons */
+
+.modal {
+    display: none; /* Hidden by default */
+    position: absolute; /* Position absolute for precise positioning */
+    z-index: 1; /* Ensure the modal is on top of other elements */
+    background-color: rgba(8, 0, 0, 0.9); /* Transparent background */
+    padding: 20px; /* Padding for content inside modal */
+    
+}
+
+.modal-content {
+    background-color: rgb(255, 255, 255); /* White background for modal content */
+    padding: 20px; /* Padding for content inside modal */
+    border-radius: 4px; /* Add some border radius for a softer look */
+    width: min-content;
+    height: min-content;
+}
+
+.close {
+    color: #100f0f;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.edit {
+    margin-left: 30px;
+    margin-top: 40px;
+    
+}
+
+/* Apply styles to the fourth list */
+ul {
+    /* Add your styles here */
+    
+    padding: 3px;
+    border-radius: 3px;
+    font-size: 19px;
+    font-family: 'Times New Roman', Times, serif;
+    font-style: italic;
+    color: rgb(250, 244, 78);
+    margin-right: 5px;
+    margin-left: 3px;
+    
+   
+    /* Add any other styles you want */
+}
+
+li{
+    padding: 8px;
+}
+
+.linechart{
+    margin-bottom: 20px;
+    padding: 20px;
+    border-radius: 8px;
+    background-color: rgba(8, 0, 0, 0.7); /* Transparent background */
+    box-shadow: 0 0 10px rgba(8, 0, 0, 0.5); /* Add shadow */
+    flex: 1; /* Take up equal space */
+    
+}
+
+.pichart{
+    margin-bottom: 20px;
+    padding: 20px;
+    border-radius: 8px;
+    background-color: rgba(8, 0, 0, 0.7); /* Transparent background */
+    box-shadow: 0 0 10px rgba(8, 0, 0, 0.5); /* Add shadow */
+    flex: 1; /* Take up equal space */
+    border-color: chartreuse;
+    border-width: 1px;
+}
+.piechart{
+    margin-bottom: 20px;
+    padding: 20px;
+    border-radius: 8px;
+    background-color: rgba(8, 0, 0, 0.7); /* Transparent background */
+    box-shadow: 0 0 10px rgba(8, 0, 0, 0.5); /* Add shadow */
+    flex: 1; /* Take up equal space */
+}
+.leaderboard{
+    margin-bottom: 20px;
+    padding: 20px;
+    border-radius: 8px;
+    background-color: rgba(8, 0, 0, 0.7); /* Transparent background */
+    box-shadow: 0 0 10px rgba(8, 0, 0, 0.5); /* Add shadow */
+    flex: 1; /* Take up equal space */
+}
+
+#insights-line-chart{
+    border-radius: 6px;
+    
+}
